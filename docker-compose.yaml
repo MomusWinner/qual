@@ -1,0 +1,48 @@
+
+services:
+  server:
+    container_name: backend
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - 4000:4000
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+      database:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: "user=${DB_USER} password=${DB_PASS} dbname=${DB_NAME} host=database sslmode=disable"
+      DEBUG: true
+
+  database:
+    image: postgres:17.4-alpine3.21
+    restart: unless-stopped
+    healthcheck:
+        test: [ "CMD", "pg_isready", "-U", "${DB_USER}", "-d", "${DB_NAME}" ]
+        interval: 1s
+        timeout: 1s
+        retries: 60
+    environment:
+      - POSTGRES_USER=${DB_USER}
+      - POSTGRES_PASSWORD=${DB_PASS}
+      - POSTGRES_DB=${DB_NAME}
+    ports:
+      - 127.0.0.1:5432:5432
+    volumes:
+      - database-data:/var/lib/postgresql/data
+
+  migrate:
+    image: migrate/migrate
+    command: ["-source=file://migrations", "-database",  "postgres://${DB_USER}:${DB_PASS}@database:5432/${DB_NAME}?sslmode=disable", "up"]
+    restart: on-failure
+    volumes:
+      - ./migrations:/migrations
+    depends_on:
+      database:
+        condition: service_healthy
+
+volumes:
+  app:
+  database-data:

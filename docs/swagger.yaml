@@ -1,0 +1,184 @@
+basePath: /api/v1
+definitions:
+  app_internal_api.Error:
+    properties:
+      code:
+        type: string
+      message:
+        type: string
+      parameter:
+        type: string
+    type: object
+  app_internal_api.ErrorResponse:
+    properties:
+      error:
+        items:
+          $ref: '#/definitions/app_internal_api.Error'
+        type: array
+      status:
+        type: string
+    type: object
+  app_internal_dto.CreateUser:
+    properties:
+      birthday:
+        type: string
+      email:
+        type: string
+      name:
+        type: string
+      password:
+        type: string
+    required:
+    - birthday
+    - email
+    - name
+    - password
+    type: object
+  app_internal_dto.UserResponse:
+    properties:
+      birthday:
+        type: string
+      created_at:
+        type: string
+      email:
+        type: string
+      id:
+        type: integer
+      name:
+        type: string
+    type: object
+info:
+  contact: {}
+  description: Service api :-)
+  title: Service API
+  version: "1.0"
+paths:
+  /users:
+    post:
+      consumes:
+      - application/json
+      description: create new user
+      parameters:
+      - description: CreateUser
+        in: body
+        name: CreateUser
+        required: true
+        schema:
+          $ref: '#/definitions/app_internal_dto.CreateUser'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/app_internal_dto.UserResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/app_internal_api.ErrorResponse'
+        "409":
+          description: Conflict
+          schema:
+            $ref: '#/definitions/app_internal_api.ErrorResponse'
+        "422":
+          description: Unprocessable Entity
+          schema:
+            $ref: '#/definitions/app_internal_api.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/app_internal_api.ErrorResponse'
+      tags:
+      - User
+  /users/:
+    get:
+      description: Get all users
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/app_internal_dto.UserResponse'
+            type: array
+        "500":
+          description: Internal Server Error
+      tags:
+      - User
+  /users/{id}:
+    delete:
+      description: Delete user by id
+      parameters:
+      - description: user id
+        in: path
+        name: id
+        type: string
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
+        "500":
+          description: Internal Server Error
+      tags:
+      - User
+    get:
+      description: Get user by id
+      parameters:
+      - description: user id
+        in: path
+        name: id
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/app_internal_dto.UserResponse'
+        "500":
+          description: Internal Server Error
+      tags:
+      - User
+    put:
+      consumes:
+      - application/json
+      description: Update user by id
+      parameters:
+      - description: user id
+        in: path
+        name: id
+        type: string
+      - description: CreateUser
+        in: body
+        name: CreateUser
+        required: true
+        schema:
+          $ref: '#/definitions/app_internal_dto.CreateUser'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/app_internal_dto.UserResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/app_internal_api.ErrorResponse'
+        "409":
+          description: Conflict
+          schema:
+            $ref: '#/definitions/app_internal_api.ErrorResponse'
+        "422":
+          description: Unprocessable Entity
+          schema:
+            $ref: '#/definitions/app_internal_api.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/app_internal_api.ErrorResponse'
+      tags:
+      - User
+swagger: "2.0"
