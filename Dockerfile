@@ -17,14 +17,12 @@ RUN go build -o app ./cmd/main.go
 # make container
 
 FROM alpine:3.21
+RUN apk add --no-cache curl
 
-# # Создаем непривилегированную группу и пользователя
-# RUN addgroup -g 1000 -S appgroup && \
-#     adduser -u 1000 -S appuser -G appgroup
-#
-# # Меняем рабочего пользователя (на все последующие инструкции)
-# USER appuser
+RUN addgroup -g 1000 -S appgroup && \
+    adduser -u 1000 -S appuser -G appgroup
 
+USER appuser
 
 WORKDIR /myapp
 

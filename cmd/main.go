@@ -39,6 +39,10 @@ func main() {
 		Title:    "Swagger API Docs",
 	}
 
+	app.Get("/healthcheck", func(c *fiber.Ctx) error {
+		return c.Status(fiber.StatusOK).JSON(fiber.Map{"status": "success"})
+	})
+
 	app.Use(swagger.New(swaggerCfg))
 
 	api := fiber.New()
@@ -55,7 +59,6 @@ func main() {
 	})
 
 	app.Listen(ctx.Config().GetHost())
-	// userMiddleware := middleware.NewUserMiddleware(user_repository, conf)
 
 	//
 	// app := fiber.New()
