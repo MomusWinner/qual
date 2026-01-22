@@ -1,12 +1,9 @@
 
 services:
-  server:
-    container_name: backend
+  app:
     build:
       context: .
       dockerfile: Dockerfile
-    ports:
-      - 4000:4000
     depends_on:
       migrate:
         condition: service_completed_successfully
@@ -15,6 +12,7 @@ services:
     environment:
       DATABASE_URL: "user=${DB_USER} password=${DB_PASS} dbname=${DB_NAME} host=database sslmode=disable"
       DEBUG: true
+      HOST: ":4000"
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:4000/healthcheck"]
       interval: 30s
@@ -38,6 +36,16 @@ services:
       - 127.0.0.1:5432:5432
     volumes:
       - database-data:/var/lib/postgresql/data
+
+  nginx:
+    image: nginx:alpine3.21
+    ports:
+     - 80:80
+    volumes:
+     - ./nginx:/etc/nginx/templates
+    depends_on:
+      app:
+        condition: service_healthy
 
   migrate:
     image: migrate/migrate
