@@ -1,16 +1,21 @@
-### Запуск проекта
+# Проект
 
-Для начала необходимо создать файл `.env` и вставить туда содержимое `example.env`.
+Бэкенд-сервис с базой данных и метриками Prometheus.
 
-Если вы хотите запустить платформу в develop режиме, то выполните команду `go mod vendor`. А после `docker compose -f docker-compose.yaml up --build`.  
-Если вы хотите использовать релизный режим, то выполните команду `docker compose -f release-compose.yaml up --build`.
+## Быстрый старт
 
-После запуска композа перейдите в Minio и создайте bucket с названием, который вы указали в `.env` (MINIO\_BUCKET). А после дайте этому bucket права на чтение и запись.  
+1. Скопируйте файл с переменными окружения:
+```bash
+cp example.env .env
+```
+2. Настройте переменные в .env файле
 
-Всё готово к работе.
+## Доступные команды
+- Генерация SQL кода: make sql
+- Генерация Swagger документации: make swagger
+- Запуск интеграционных тестов: make test-integration
 
-### Кодогенераторы
-
-* swag init - генерация swagger
-* sqlc generate - генерация sql запросов по `./queries/*`  
-* goverter gen path\_to\_package - генерация преобразователя структур
+## Метрики Prometheus
+- http_requests_total - количество HTTP запросов
+- http_response_time_seconds - время обработки HTTP запросов
+- db_response_time_seconds - время ответа от базы данных
