@@ -4,6 +4,7 @@ import (
 	"app/internal/api/v1/user"
 	"app/internal/core"
 	"app/internal/domain/cases"
+	"app/internal/middleware"
 	"fmt"
 
 	// flogger "app/internal/logger"
@@ -21,7 +22,7 @@ import (
 func main() {
 	ctx := core.InitCtx()
 	userUseCase := cases.NewUserUseCase(ctx)
-	userHandler := user.NewUserHandler(ctx, userUseCase)
+	userHandler := user.NewUserHandler(userUseCase)
 
 	app := fiber.New()
 	app.Use(cors.New(cors.Config{
@@ -47,7 +48,7 @@ func main() {
 
 	api := fiber.New()
 	app.Mount("/api/v1", api)
-
+	api.Use(middleware.CorrelationIDMiddleware(ctx))
 	user.AddRoutes(api, userHandler)
 
 	app.All("*", func(c *fiber.Ctx) error {
@@ -60,7 +61,6 @@ func main() {
 
 	app.Listen(ctx.Config().GetHost())
 
-	//
 	// app := fiber.New()
 	// micro := fiber.New()
 	// app.Use(cors.New(cors.Config{

@@ -14,12 +14,11 @@ import (
 )
 
 type UserHandler struct {
-	ctx         domain.Context
 	userUseCase *cases.UserUseCase
 }
 
-func NewUserHandler(ctx domain.Context, userUseCase *cases.UserUseCase) *UserHandler {
-	return &UserHandler{ctx, userUseCase}
+func NewUserHandler(userUseCase *cases.UserUseCase) *UserHandler {
+	return &UserHandler{userUseCase}
 }
 
 // Create
@@ -34,7 +33,7 @@ func NewUserHandler(ctx domain.Context, userUseCase *cases.UserUseCase) *UserHan
 // @Failure    500 {object} api.ErrorResponse
 // @Failure    422 {object} api.ErrorResponse
 // @Router     /users [post]
-func (h *UserHandler) Create(c *fiber.Ctx) error {
+func (h *UserHandler) Create(appCtx domain.Context, c *fiber.Ctx) error {
 	var payload *dto.CreateUser
 
 	if err := c.BodyParser(&payload); err != nil {
@@ -59,13 +58,13 @@ func (h *UserHandler) Create(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"status": "fail", "message": err.Error()})
 	}
 
-	hasUser, _ := h.ctx.Connection().UserRepository().GetByEmail(c.Context(), payload.Email)
+	hasUser, _ := appCtx.Connection().UserRepository().GetByEmail(c.Context(), payload.Email)
 
 	if hasUser != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"status": "fail", "message": "user with the same email address already exists"})
 	}
 
-	newUser, err := h.ctx.Connection().UserRepository().Add(c.Context(), models.User{
+	newUser, err := appCtx.Connection().UserRepository().Add(c.Context(), models.User{
 		Name:     payload.Name,
 		Email:    payload.Email,
 		Password: hashedPassword,
@@ -87,13 +86,13 @@ func (h *UserHandler) Create(c *fiber.Ctx) error {
 // @Success      200 {object} dto.UserResponse
 // @Failure      500
 // @Router       /users/{id} [get]
-func (h *UserHandler) GetById(c *fiber.Ctx) error {
+func (h *UserHandler) GetById(appCtx domain.Context, c *fiber.Ctx) error {
 	id, err := api.GetIdParam(c)
 	if err != nil {
 		return err
 	}
 
-	user, err := h.ctx.Connection().UserRepository().GetById(c.Context(), id)
+	user, err := appCtx.Connection().UserRepository().GetById(c.Context(), id)
 	if err != nil {
 		return api.InternalServerError(c, err, "")
 	}
@@ -108,8 +107,8 @@ func (h *UserHandler) GetById(c *fiber.Ctx) error {
 // @Success      200 {object} []dto.UserResponse
 // @Failure      500
 // @Router       /users/ [get]
-func (h *UserHandler) GetAll(c *fiber.Ctx) error {
-	users, err := h.ctx.Connection().UserRepository().GetAll(c.Context())
+func (h *UserHandler) GetAll(appCtx domain.Context, c *fiber.Ctx) error {
+	users, err := appCtx.Connection().UserRepository().GetAll(c.Context())
 	if err != nil {
 		return api.InternalServerError(c, err, "")
 	}
@@ -130,7 +129,7 @@ func (h *UserHandler) GetAll(c *fiber.Ctx) error {
 // @Failure    500 {object} api.ErrorResponse
 // @Failure    422 {object} api.ErrorResponse
 // @Router     /users/{id} [put]
-func (h *UserHandler) Update(c *fiber.Ctx) error {
+func (h *UserHandler) Update(appCtx domain.Context, c *fiber.Ctx) error {
 	id, err := api.GetIdParam(c)
 	if err != nil {
 		return err
@@ -160,13 +159,13 @@ func (h *UserHandler) Update(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"status": "fail", "message": err.Error()})
 	}
 
-	userByEmail, _ := h.ctx.Connection().UserRepository().GetByEmail(c.Context(), payload.Email)
+	userByEmail, _ := appCtx.Connection().UserRepository().GetByEmail(c.Context(), payload.Email)
 
 	if userByEmail != nil && int(userByEmail.ID) != id {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"status": "fail", "message": "user with the same email address already exists"})
 	}
 
-	newUser, err := h.ctx.Connection().UserRepository().Update(c.Context(), models.User{
+	newUser, err := appCtx.Connection().UserRepository().Update(c.Context(), models.User{
 		ID:       int32(id),
 		Name:     payload.Name,
 		Email:    payload.Email,
@@ -193,13 +192,13 @@ func (h *UserHandler) Update(c *fiber.Ctx) error {
 // @Success      204
 // @Failure      500
 // @Router       /users/{id} [delete]
-func (h *UserHandler) Delete(c *fiber.Ctx) error {
+func (h *UserHandler) Delete(appCtx domain.Context, c *fiber.Ctx) error {
 	id, err := api.GetIdParam(c)
 	if err != nil {
 		return err
 	}
 
-	err = h.ctx.Connection().UserRepository().Delete(c.Context(), id)
+	err = appCtx.Connection().UserRepository().Delete(c.Context(), id)
 	if err != nil {
 		return api.InternalServerError(c, err, "")
 	}

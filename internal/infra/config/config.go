@@ -8,22 +8,6 @@ type Config struct {
 	DatabaseURL string `help:"Database connection URL" env:"DATABASE_URL"  required:"true"`
 }
 
-func Load() (*Config, error) {
-	cfg := &Config{}
-	parser, err := kong.New(cfg)
-	if err != nil {
-		return nil, err
-	}
-
-	// Parse command-line flags, environment variables, and config file
-	_, err = parser.Parse(nil)
-	if err != nil {
-		return nil, err
-	}
-
-	return cfg, nil
-}
-
 func Make() *Config {
 	cfg := &Config{}
 	parser, err := kong.New(cfg)
