@@ -7,8 +7,6 @@ import (
 	"app/internal/middleware"
 	"fmt"
 
-	// flogger "app/internal/logger"
-
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/gofiber/contrib/swagger"
 	"github.com/gofiber/fiber/v2"
@@ -21,10 +19,14 @@ import (
 // @basePath /api/v1
 func main() {
 	ctx := core.InitCtx()
+	ctx.Connection().EnableUserRepositoryMetrics()
 	userUseCase := cases.NewUserUseCase(ctx)
 	userHandler := user.NewUserHandler(userUseCase)
 
+	metrics := core.NewHttpMetrics()
+
 	app := fiber.New()
+
 	app.Use(cors.New(cors.Config{
 		AllowHeaders: "Origin,Content-Type,Accept,Content-Length,Accept-Language," +
 			"Accept-Encoding,Connection,Access-Control-Allow-Origin,Authorization",
@@ -32,6 +34,8 @@ func main() {
 		AllowCredentials: true,
 		AllowMethods:     "GET,POST,HEAD,PUT,DELETE,PATCH,OPTIONS",
 	}))
+
+	core.RegisterMetricsAt(app, "/metrics", middleware.CorrelationIDMiddleware(ctx))
 
 	swaggerCfg := swagger.Config{
 		BasePath: "/",
@@ -48,6 +52,7 @@ func main() {
 
 	api := fiber.New()
 	app.Mount("/api/v1", api)
+	api.Use(middleware.MetricsMiddleware(metrics))
 	api.Use(middleware.CorrelationIDMiddleware(ctx))
 	user.AddRoutes(api, userHandler)
 
@@ -60,60 +65,4 @@ func main() {
 	})
 
 	app.Listen(ctx.Config().GetHost())
-
-	// app := fiber.New()
-	// micro := fiber.New()
-	// app.Use(cors.New(cors.Config{
-	// 	AllowHeaders: "Origin,Content-Type,Accept,Content-Length,Accept-Language," +
-	// 		"Accept-Encoding,Connection,Access-Control-Allow-Origin,Authorization",
-	// 	AllowOrigins:     "http://localhost:3000,http://localhost:8000,https://*.ocrv-game.ru,https://ocrv-game.ru",
-	// 	AllowCredentials: true,
-	// 	AllowMethods:     "GET,POST,HEAD,PUT,DELETE,PATCH,OPTIONS",
-	// }))
-	//
-	// swagger_conf := swagger.Config{
-	// 	BasePath: "/",
-	// 	FilePath: "./docs/swagger.json",
-	// 	Path:     "swagger",
-	// 	Title:    "Swagger API Docs",
-	// }
-	//
-	// app.Use(swagger.New(swagger_conf))
-	// loggerMiddelware := flogger.NewLoggerMiddelware(conf.Debug)
-	// app.Use(loggerMiddelware.Handle)
-	//
-	// app.Mount("/api/v1", micro)
-	// // userMiddleware := middleware.NewUserMiddleware(user_repository, conf)
-	//
-	// authHandler := auth.NewAuthHandler(user_repository, &redis_conn, &smtp, conf)
-	// auth.AddRoutes(micro, &authHandler)
-	//
-	// convImpl := &DTO.UserConverterImpl{}
-	// userHandler := user.NewUserHandler(conf, &smtp, user_repository, &redis_conn, convImpl)
-	// user.AddRoutes(micro, userHandler)
-	//
-	// micro.Get("/", func(c *fiber.Ctx) error {
-	// 	slog.InfoContext(c.Context(), "Hellooooo")
-	// 	return c.Status(fiber.StatusOK).JSON(fiber.Map{
-	// 		"status":  "success",
-	// 		"message": "Hello",
-	// 	})
-	// })
-	//
-	// micro.Get("/healthcheck", func(c *fiber.Ctx) error {
-	// 	return c.Status(fiber.StatusOK).JSON(fiber.Map{
-	// 		"status":  "success",
-	// 		"message": "good",
-	// 	})
-	// })
-	//
-	// micro.All("*", func(c *fiber.Ctx) error {
-	// 	path := c.Path()
-	// 	return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
-	// 		"status":  "fail",
-	// 		"message": fmt.Sprintf("Path: %v does not exists on this server", path),
-	// 	})
-	// })
-	//
-	// app.Listen(conf.Host)
 }

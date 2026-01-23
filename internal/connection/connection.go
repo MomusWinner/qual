@@ -9,6 +9,7 @@ import (
 	"app/internal/domain"
 	"app/internal/domain/infra"
 	"app/internal/domain/repositories"
+
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
@@ -29,7 +30,7 @@ func makeConnection(pool *pgxpool.Pool) *connection {
 	}
 }
 
-func Make(cfg infra.Config) domain.Connection {
+func Make(cfg infra.Config) *connection {
 	pool, err := pgxpool.New(context.Background(), cfg.GetDatabaseURL())
 
 	pool.Config().MaxConns = 20
@@ -51,4 +52,17 @@ func Close(conn domain.Connection) {
 
 func (c *connection) UserRepository() repositories.UserRepository {
 	return c.userRepository
+}
+
+func (c *connection) EnableUserRepositoryMetrics() {
+	if c.userRepository == nil {
+		panic("Connection is not initialized")
+	}
+
+	_, ok := c.userRepository.(*userRepoMetrics)
+	if ok {
+		panic("User repository metrics already enabled")
+	}
+
+	c.userRepository = newUserRepositoryMetrics(c.userRepository)
 }

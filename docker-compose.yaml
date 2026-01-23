@@ -1,6 +1,6 @@
 
 services:
-  app:
+  web:
     build:
       context: .
       dockerfile: Dockerfile
@@ -44,7 +44,7 @@ services:
     volumes:
      - ./nginx:/etc/nginx/templates
     depends_on:
-      app:
+      web:
         condition: service_healthy
 
   migrate:
@@ -57,6 +57,23 @@ services:
       database:
         condition: service_healthy
 
+  prometheus: 
+    image: prom/prometheus:latest
+    ports:
+      - "127.0.0.1:9090:9090"
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+    healthcheck:
+      test: ["CMD", "wget", "http://localhost:9090"]
+      interval: 10s
+      timeout: 15s
+      retries: 3
+      start_period: 40s 
+    depends_on:
+      web:
+        condition: service_healthy
+
 volumes:
-  app:
   database-data:
