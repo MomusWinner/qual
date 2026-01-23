@@ -10,6 +10,7 @@ type Context interface {
 	Make() Context
 	Connection() Connection
 	Config() infra.Config
+	HttpMetrics() HttpMetrics
 	Logger() *slog.Logger
 	CorrelationID() string
 	SetCorrelationID(id string)

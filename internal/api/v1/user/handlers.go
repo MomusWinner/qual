@@ -61,7 +61,7 @@ func (h *UserHandler) Create(appCtx domain.Context, c *fiber.Ctx) error {
 	hasUser, _ := appCtx.Connection().UserRepository().GetByEmail(c.Context(), payload.Email)
 
 	if hasUser != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"status": "fail", "message": "user with the same email address already exists"})
+		return c.Status(fiber.StatusConflict).JSON(fiber.Map{"status": "fail", "message": "user with the same email address already exists"})
 	}
 
 	newUser, err := appCtx.Connection().UserRepository().Add(c.Context(), models.User{
@@ -71,7 +71,7 @@ func (h *UserHandler) Create(appCtx domain.Context, c *fiber.Ctx) error {
 		Birthday: &birthday,
 	})
 
-	if err != nil {
+	if err != nil || newUser == nil {
 		return api.InternalServerError(c, err, "")
 	}
 
@@ -95,6 +95,10 @@ func (h *UserHandler) GetById(appCtx domain.Context, c *fiber.Ctx) error {
 	user, err := appCtx.Connection().UserRepository().GetById(c.Context(), id)
 	if err != nil {
 		return api.InternalServerError(c, err, "")
+	}
+
+	if user == nil {
+		return api.NotFoundError(c, "user with your id does not exist")
 	}
 
 	return c.Status(fiber.StatusOK).JSON(dto.ModelToUserResponse(user))
@@ -162,7 +166,7 @@ func (h *UserHandler) Update(appCtx domain.Context, c *fiber.Ctx) error {
 	userByEmail, _ := appCtx.Connection().UserRepository().GetByEmail(c.Context(), payload.Email)
 
 	if userByEmail != nil && int(userByEmail.ID) != id {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"status": "fail", "message": "user with the same email address already exists"})
+		return c.Status(fiber.StatusConflict).JSON(fiber.Map{"status": "fail", "message": "user with the same email address already exists"})
 	}
 
 	newUser, err := appCtx.Connection().UserRepository().Update(c.Context(), models.User{
@@ -178,10 +182,10 @@ func (h *UserHandler) Update(appCtx domain.Context, c *fiber.Ctx) error {
 	}
 
 	if newUser == nil {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"status": "fail", "message": "user with your id does not exist"})
+		return api.NotFoundError(c, "user with your id does not exist")
 	}
 
-	return c.Status(fiber.StatusCreated).JSON(dto.ModelToUserResponse(newUser))
+	return c.Status(fiber.StatusOK).JSON(dto.ModelToUserResponse(newUser))
 }
 
 // Delete

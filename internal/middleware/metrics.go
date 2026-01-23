@@ -1,20 +1,20 @@
 package middleware
 
 import (
-	"app/internal/core"
+	"app/internal/domain"
 
 	"github.com/gofiber/fiber/v2"
 )
 
-func MetricsMiddleware(m *core.HttpMetrics) fiber.Handler {
+func MetricsMiddleware(m domain.HttpMetrics) fiber.Handler {
 	return func(c *fiber.Ctx) error {
 		statusCode := c.Response().StatusCode()
 		method := c.Method()
 		path := c.Path()
 
-		r := m.StartRequestMetrics(statusCode, method, path)
+		m.StartRequestMetrics(statusCode, method, path)
 		err := c.Next()
-		r.EndRequestMetrics()
+		m.EndRequestMetrics()
 
 		return err
 	}

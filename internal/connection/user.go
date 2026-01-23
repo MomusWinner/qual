@@ -74,6 +74,12 @@ func (r *userRepo) Update(ctx context.Context, user models.User) (*models.User, 
 		Birthday: *user.Birthday,
 	})
 
+	if errors.Is(err, sql.ErrNoRows) {
+		return nil, nil
+	} else if err != nil {
+		return nil, err
+	}
+
 	output := databaseUserToModelsUser(update)
 	return &output, err
 }

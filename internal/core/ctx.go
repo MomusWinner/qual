@@ -15,6 +15,7 @@ type Ctx struct {
 	baseLogger    *slog.Logger
 	logger        *slog.Logger
 	correlationId string
+	httpMetrics   domain.HttpMetrics
 }
 
 func (c *Ctx) Config() infra.Config {
@@ -32,6 +33,10 @@ func (c *Ctx) Connection() domain.Connection {
 	return c.con
 }
 
+func (c *Ctx) HttpMetrics() domain.HttpMetrics {
+	return c.httpMetrics
+}
+
 func (c *Ctx) CorrelationID() string {
 	return c.correlationId
 }
@@ -47,6 +52,7 @@ func (c *Ctx) WithCorrelationID(id string) domain.Context {
 		con:           c.con,
 		cfg:           c.cfg,
 		baseLogger:    c.baseLogger,
+		httpMetrics:   c.httpMetrics,
 	}
 	newCtx.logger = newCtx.baseLogger.With("correlation_id", id)
 	return newCtx
@@ -64,13 +70,23 @@ func (c *Ctx) Make() domain.Context {
 func InitCtx() *Ctx {
 	cfg := config.Make()
 	logger := slog.New(slog.NewJSONHandler(os.Stdout, nil))
-
+	metrics := NewHttpMetrics()
 	db := connection.Make(cfg)
 
 	return &Ctx{
-		cfg:        cfg,
-		baseLogger: logger,
-		con:        db,
+		cfg:         cfg,
+		baseLogger:  logger,
+		httpMetrics: metrics,
+		con:         db,
+	}
+}
+
+func InitCtxWithDependencies(cfg infra.Config, logger *slog.Logger, metrics domain.HttpMetrics, db domain.Connection) *Ctx {
+	return &Ctx{
+		cfg:         cfg,
+		baseLogger:  logger,
+		httpMetrics: metrics,
+		con:         db,
 	}
 }
 

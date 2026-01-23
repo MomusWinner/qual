@@ -13,11 +13,7 @@ import (
 type HttpMetrics struct {
 	httpRequestsTotal *prometheus.CounterVec
 	httpResponseTime  *prometheus.HistogramVec
-}
-
-type HttpMetricsData struct {
-	m     *HttpMetrics
-	timer *prometheus.Timer
+	timer             *prometheus.Timer
 }
 
 func NewHttpMetrics() *HttpMetrics {
@@ -39,7 +35,7 @@ func NewHttpMetrics() *HttpMetrics {
 	}
 }
 
-func (m *HttpMetrics) StartRequestMetrics(statusCode int, method string, path string) HttpMetricsData {
+func (m *HttpMetrics) StartRequestMetrics(statusCode int, method string, path string) {
 	status := strconv.Itoa(statusCode)
 
 	labels := prometheus.Labels{
@@ -49,15 +45,10 @@ func (m *HttpMetrics) StartRequestMetrics(statusCode int, method string, path st
 	}
 
 	m.httpRequestsTotal.With(labels).Inc()
-	timer := prometheus.NewTimer(m.httpResponseTime.With(labels))
-
-	return HttpMetricsData{
-		m:     m,
-		timer: timer,
-	}
+	m.timer = prometheus.NewTimer(m.httpResponseTime.With(labels))
 }
 
-func (m *HttpMetricsData) EndRequestMetrics() {
+func (m *HttpMetrics) EndRequestMetrics() {
 	m.timer.ObserveDuration()
 }
 
