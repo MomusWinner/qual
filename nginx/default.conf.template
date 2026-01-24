@@ -1,8 +1,20 @@
+upstream prometheus_backend {
+	server prometheus:9090;
+}
+
+upstream web_backend {
+	server web:4000;
+}
+
 server {
 	listen 80;
 	server_name localhost;
 
+	location /prometheus {
+		proxy_pass http://prometheus_backend/prometheus;
+	}
+
 	location / {
-		proxy_pass http://web:4000;
+		proxy_pass http://web_backend;
 	}
 }

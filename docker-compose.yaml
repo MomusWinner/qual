@@ -32,8 +32,6 @@ services:
       - POSTGRES_USER=${DB_USER}
       - POSTGRES_PASSWORD=${DB_PASS}
       - POSTGRES_DB=${DB_NAME}
-    ports:
-      - 127.0.0.1:5432:5432
     volumes:
       - database-data:/var/lib/postgresql/data
 
@@ -57,14 +55,14 @@ services:
       database:
         condition: service_healthy
 
-  prometheus: 
+  prometheus:
     image: prom/prometheus:latest
-    ports:
-      - "127.0.0.1:9090:9090"
     volumes:
       - ./prometheus.yml:/etc/prometheus/prometheus.yml
     command:
       - '--config.file=/etc/prometheus/prometheus.yml'
+      - --web.route-prefix=/prometheus
+      - --web.external-url=http://localhost:9090/prometheus
     healthcheck:
       test: ["CMD", "wget", "http://localhost:9090"]
       interval: 10s
