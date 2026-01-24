@@ -88,7 +88,7 @@ func (h *UserHandler) Create(appCtx domain.Context, c *fiber.Ctx) error {
 // @Router       /users/{id} [get]
 func (h *UserHandler) GetById(appCtx domain.Context, c *fiber.Ctx) error {
 	id, err := api.GetIdParam(c)
-	if err != nil {
+	if id == -1 {
 		return err
 	}
 
@@ -135,7 +135,7 @@ func (h *UserHandler) GetAll(appCtx domain.Context, c *fiber.Ctx) error {
 // @Router     /users/{id} [put]
 func (h *UserHandler) Update(appCtx domain.Context, c *fiber.Ctx) error {
 	id, err := api.GetIdParam(c)
-	if err != nil {
+	if id == -1 {
 		return err
 	}
 
@@ -198,7 +198,7 @@ func (h *UserHandler) Update(appCtx domain.Context, c *fiber.Ctx) error {
 // @Router       /users/{id} [delete]
 func (h *UserHandler) Delete(appCtx domain.Context, c *fiber.Ctx) error {
 	id, err := api.GetIdParam(c)
-	if err != nil {
+	if id == -1 {
 		return err
 	}
 

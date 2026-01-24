@@ -62,7 +62,7 @@ func GetIdParam(c *fiber.Ctx) (int, error) {
 	intputId := c.Params("id")
 	id, err := strconv.Atoi(intputId)
 	if intputId == "" || err != nil {
-		return 0, c.Status(fiber.ErrBadRequest.Code).JSON(NewErrorResponse([]Error{{Code: UnprocessableEntity, Parameter: "id"}}))
+		return -1, c.Status(fiber.ErrBadRequest.Code).JSON(NewErrorResponse([]Error{{Code: UnprocessableEntity, Parameter: "id"}}))
 	}
 
 	return id, nil
